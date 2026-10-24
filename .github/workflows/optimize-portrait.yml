@@ -1,0 +1,58 @@
+name: Optimize portrait for website
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/optimize-portrait.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow
+      - name: Create and use optimized portrait
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+
+          source = Image.open("web image.jpg").convert("RGB")
+          width, height = source.size
+          # Match existing portrait crop, centered on the subject.
+          box = (round(width * 180 / 1541), round(height * 120 / 2048),
+                 round(width * 1320 / 1541), round(height * 1545 / 2048))
+          cropped = source.crop(box)
+          cropped = cropped.resize((800, 1000), Image.Resampling.LANCZOS)
+          cropped.save("portrait-optimized.jpg", "JPEG", quality=87,
+                       subsampling=0, optimize=True, progressive=True)
+
+          p = Path("index.html")
+          html = p.read_text(encoding="utf-8")
+          old = ".portrait-frame img{position:absolute;display:block;width:135%;height:135%;max-width:none;top:-9%;left:-12%;object-fit:cover;object-position:center;filter:contrast(.96) saturate(.98) blur(.28px)}"
+          new = ".portrait-frame img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:none}"
+          if old not in html:
+              raise SystemExit("Unexpected portrait CSS; no changes committed")
+          html = html.replace(old, new)
+          html = html.replace('<img src="web%20image.jpg" alt="Portrait of Syed M. Usman Tayyab">',
+                              '<img src="portrait-optimized.jpg" alt="Portrait of Syed M. Usman Tayyab">')
+          p.write_text(html, encoding="utf-8")
+          PY
+      - name: Commit optimized image and website update
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add portrait-optimized.jpg index.html
+          git commit -m "Use optimized portrait while preserving full-resolution original"
+          git push origin HEAD:main
