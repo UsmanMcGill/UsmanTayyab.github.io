@@ -45,6 +45,20 @@ section.content{padding:78px 0;border-bottom:1px solid var(--line)}.intro{max-wi
 <section id="contact" class="contact"><div class="wrap"><h2>Let's connect.</h2><p>For academic collaborations, research conversations and speaking opportunities, please get in touch.</p><div class="contactlinks"><a href="mailto:syed.tayyab@mail.mcgill.ca">Email ↗</a><a href="https://www.linkedin.com/in/usman-tayyab/" target="_blank" rel="noopener">LinkedIn ↗</a></div><p class="smallnote" style="color:#a1b8c0;margin-top:26px">McGill Desautels Faculty of Management, 1001 Sherbrooke Street West, Montréal, Canada</p></div></section>
 </main><footer><div class="wrap"><span>© <span id="year">2026</span> Syed M. Usman Tayyab</span></div></footer>
 <script>
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.addEventListener("load", () => {
+  const navigation = performance.getEntriesByType("navigation")[0];
+  if (navigation && navigation.type === "reload") {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }
+});
+window.addEventListener("pageshow", event => {
+  if (event.persisted) return;
+  const navigation = performance.getEntriesByType("navigation")[0];
+  if (navigation && navigation.type === "reload") {
+    window.scrollTo(0, 0);
+  }
+});
 document.getElementById("year").textContent=new Date().getFullYear();
 document.querySelector(".brand").addEventListener("click",event=>{event.preventDefault();history.replaceState(null,"",window.location.pathname+window.location.search);window.scrollTo({top:0,behavior:"smooth"});});
 const filters=[...document.querySelectorAll(".filter")],cards=[...document.querySelectorAll(".pub")],search=document.querySelector("#pubsearch"),empty=document.querySelector("#empty");let category="all";
